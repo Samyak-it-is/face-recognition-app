@@ -11,14 +11,15 @@
 <div class="row mt-4">
     <div class="col-md-8 offset-md-2">
         <div class="video-container">
-            <img id="video" src="{{ url_for('video_feed') }}" alt="Video Feed">
+            <!-- Video element to display the webcam feed -->
+            <video id="video" width="640" height="480" autoplay></video>
         </div>
         
         <div class="text-center capture-btn">
             <button id="capture-btn" class="btn btn-primary">Verify Identity</button>
         </div>
         
-        <canvas id="canvas" width="640" height="480"></canvas>
+        <canvas id="canvas" width="640" height="480" style="display: none;"></canvas>
         
         <form id="detect-form" action="{{ url_for('detect_face') }}" method="POST" style="display: none;">
             <input type="hidden" name="image_data" id="image-data">
@@ -27,25 +28,35 @@
 </div>
 
 <script>
+    // Access the user's webcam
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(function(stream) {
+            // Set the video source to the webcam stream
+            const video = document.getElementById('video');
+            video.srcObject = stream;
+        })
+        .catch(function(error) {
+            console.error("Error accessing the camera: ", error);
+            alert("Camera access is required for this application.");
+        });
+
+    // Handle the click event of the capture button
     document.getElementById('capture-btn').addEventListener('click', function() {
-        // Create a temporary image element to capture the video frame
-        const img = new Image();
-        img.src = document.getElementById('video').src;
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+
+        // Draw the current frame from the video stream onto the canvas
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
         
-        img.onload = function() {
-            const canvas = document.getElementById('canvas');
-            const context = canvas.getContext('2d');
-            
-            // Draw the video frame to the canvas
-            context.drawImage(img, 0, 0, canvas.width, canvas.height);
-            
-            // Get the image data as base64 string
-            const imageData = canvas.toDataURL('image/jpeg');
-            
-            // Set the image data to the form and submit
-            document.getElementById('image-data').value = imageData;
-            document.getElementById('detect-form').submit();
-        };
+        // Get the image data as a base64 string
+        const imageData = canvas.toDataURL('image/jpeg');
+        
+        // Set the image data in the hidden input field
+        document.getElementById('image-data').value = imageData;
+        
+        // Submit the form to send the image to the server
+        document.getElementById('detect-form').submit();
     });
 </script>
 {% endblock %}
