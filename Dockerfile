@@ -1,22 +1,18 @@
-# Use the official Python image from the Docker Hub
+# Use a lightweight Python image
 FROM python:3.10-slim
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-# Set the working directory inside the container
+# Set the working directory
 WORKDIR /app
 
-# Copy and install dependencies
+# Install dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt gunicorn
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the entire project into the container
+# Copy project files
 COPY . .
 
-# Expose the port gunicorn will listen on
+# Expose the port
 EXPOSE 10000
 
-# Command to run the app using gunicorn
+# Run with gunicorn
 CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:10000"]
