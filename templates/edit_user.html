@@ -1,0 +1,88 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-header">
+                <h3>Edit User</h3>
+            </div>
+            <div class="card-body">
+                <form id="edit-user-form" method="POST" action="{{ url_for('edit_user', user_id=user.id) }}">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="name" name="name" value="{{ user.name }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="access_level" class="form-label">Access Level</label>
+                        <select class="form-control" id="access_level" name="access_level" required>
+                            <option value="basic" {% if user.access_level == 'basic' %}selected{% endif %}>Basic</option>
+                            <option value="staff" {% if user.access_level == 'staff' %}selected{% endif %}>Staff</option>
+                            <option value="admin" {% if user.access_level == 'admin' %}selected{% endif %}>Admin</option>
+                        </select>
+                    </div>
+                    <!-- templates/edit_user.html (continued) -->
+                    <div class="mb-3">
+                        <label class="form-label">Current Face Image</label>
+                        <div>
+                            <img src="{{ url_for('static', filename=user.image_path.split('/')[-2] + '/' + user.image_path.split('/')[-1]) }}" alt="{{ user.name }}" class="img-fluid" style="max-height: 200px;">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Update Face Image (optional)</label>
+                        <div class="video-container">
+                            <img id="video" src="{{ url_for('video_feed') }}" alt="Video Feed">
+                        </div>
+                        <div class="text-center mt-2">
+                            <button type="button" id="capture-btn" class="btn btn-info">Capture New Image</button>
+                        </div>
+                        <div class="mt-3" id="captured-image-container" style="display: none;">
+                            <p>New Captured Image:</p>
+                            <img id="captured-image" class="img-fluid" style="max-height: 200px;">
+                        </div>
+                        <input type="hidden" name="image_data" id="image-data">
+                    </div>
+                    
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary">Update User</button>
+                        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+                
+                <canvas id="canvas" width="640" height="480" style="display: none;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('capture-btn').addEventListener('click', function() {
+        // Create a temporary image element to capture the video frame
+        const img = new Image();
+        img.src = document.getElementById('video').src;
+        
+        img.onload = function() {
+            const canvas = document.getElementById('canvas');
+            const context = canvas.getContext('2d');
+            
+            // Draw the video frame to the canvas
+            context.drawImage(img, 0, 0, canvas.width, canvas.height);
+            
+            // Get the image data as base64 string
+            const imageData = canvas.toDataURL('image/jpeg');
+            
+            // Set the image data to the form
+            document.getElementById('image-data').value = imageData;
+            
+            // Show the captured image
+            document.getElementById('captured-image').src = imageData;
+            document.getElementById('captured-image-container').style.display = 'block';
+        };
+    });
+</script>
+{% endblock %}

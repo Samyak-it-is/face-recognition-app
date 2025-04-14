@@ -1,0 +1,51 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12 text-center">
+        <h1>Facial Recognition Access Control</h1>
+        <p class="lead">Please look at the camera to verify your identity</p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-8 offset-md-2">
+        <div class="video-container">
+            <img id="video" src="{{ url_for('video_feed') }}" alt="Video Feed">
+        </div>
+        
+        <div class="text-center capture-btn">
+            <button id="capture-btn" class="btn btn-primary">Verify Identity</button>
+        </div>
+        
+        <canvas id="canvas" width="640" height="480"></canvas>
+        
+        <form id="detect-form" action="{{ url_for('detect_face') }}" method="POST" style="display: none;">
+            <input type="hidden" name="image_data" id="image-data">
+        </form>
+    </div>
+</div>
+
+<script>
+    document.getElementById('capture-btn').addEventListener('click', function() {
+        // Create a temporary image element to capture the video frame
+        const img = new Image();
+        img.src = document.getElementById('video').src;
+        
+        img.onload = function() {
+            const canvas = document.getElementById('canvas');
+            const context = canvas.getContext('2d');
+            
+            // Draw the video frame to the canvas
+            context.drawImage(img, 0, 0, canvas.width, canvas.height);
+            
+            // Get the image data as base64 string
+            const imageData = canvas.toDataURL('image/jpeg');
+            
+            // Set the image data to the form and submit
+            document.getElementById('image-data').value = imageData;
+            document.getElementById('detect-form').submit();
+        };
+    });
+</script>
+{% endblock %}
